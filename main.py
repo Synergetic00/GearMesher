@@ -69,6 +69,31 @@ def subFromSVG(radii, angle):
     svgBuilder.AddPolygons(solution, 0x60138013, 0xFF003300)
     svgBuilder.SaveToFile('./output.svg', invScale, 0)
 
+def combine():
+    subj, clip, clip2 = [], [], []
+    cpoints, clipSVG = getSampledSvgPoints('gear.svg')
+    clipArr1 = convertToPointArray(clipSVG, 0, 0)
+    clipArr2 = convertToPointArray(clipSVG, 0, 100)
+    clipArr3 = convertToPointArray(clipSVG, 0, 200)
+    subj.append(clipArr1)
+    clip.append(clipArr2)
+    clip2.append(clipArr3)
+    c = Clipper()
+    solution = []
+    pft = PolyFillType.EvenOdd
+    scaleExp = 0
+    scale = math.pow(10, scaleExp)
+    invScale = 1.0 / scale
+    c.AddPolygons(subj, PolyType.Subject)
+    c.AddPolygons(clip, PolyType.Clip)
+    c.AddPolygons(clip2, PolyType.Subject)
+    c.Execute(ClipType.Union, solution, pft, pft)
+    svgBuilder = SVGBuilder()
+    svgBuilder.GlobalStyle.fillType = pft
+    svgBuilder.GlobalStyle.penWidth = 0
+    svgBuilder.AddPolygons(solution, 0x60138013, 0xFF003300)
+    svgBuilder.SaveToFile('./output.svg', invScale, 0)
+
 def performSetup(pathSVG, radii):
     svg = svgutils.transform.fromfile(pathSVG)
     originalSVG = svgutils.compose.SVG(pathSVG)
@@ -79,9 +104,11 @@ def performSetup(pathSVG, radii):
     figure = svgutils.compose.Figure(svg.height, svg.width, originalSVG)
     figure.save('output.svg')
 
-RADIUS = 224
-performSetup('circle.svg', RADIUS)
-TEETH = 16
-for i in range(0, TEETH+1, 1):
-    rot = (90.0/TEETH) * i
-    subFromSVG(RADIUS, rot)
+combine()
+
+# RADIUS = 224
+# performSetup('circle.svg', RADIUS)
+# TEETH = 16
+# for i in range(0, TEETH+1, 1):
+#     rot = (90.0/TEETH) * i
+#     subFromSVG(RADIUS, rot)
