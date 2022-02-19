@@ -15,8 +15,14 @@ def getSvgDimesions(points):
     middle = ((right-left)/2.0, (lower-upper)/2.0)
     return (upper, lower, left, right, middle)
 
-def getSampledPoints(path, samples=1000, offset=(0,0), degrees=0):
-    svgdoc = minidom.parse(path)
+def getSampledPoints(path, samples=1000, offset=(0,0), middle=(0,0), degrees=0):
+    svgdims = svgutils.transform.fromfile(path)
+    svgfile = svgutils.compose.SVG(path)
+    svgfile = svgfile.rotate(degrees, x=middle[0], y=middle[1])
+    figure = svgutils.compose.Figure(svgdims.width, svgdims.height, svgfile)
+    figure.save('temp.svg')
+
+    svgdoc = minidom.parse('temp.svg')
     svgpathdarr = [element.getAttribute('d') for element in svgdoc.getElementsByTagName('path')]
     svgdoc.unlink()
     svgpathd = str(svgpathdarr[-1])
@@ -63,19 +69,21 @@ def getResampledArr(original, samples=1500):
         counter += ratio
     return resampled
 
-GEAR_POINTS, GEAR_SIZE = getSampledPoints(path='gear.svg')
+GEAR_POINTS, GEAR_SIZE = getSampledPoints(path='gear.svg', degrees=0)
 
 RADIUS = 300
 
 union = getUnion(GEAR_POINTS, GEAR_POINTS)
 
-for i in range(0, 91, 6):
+for i in range(0, 91, 90):
+    rotatedGear, rotatedSize = getSampledPoints(path='gear.svg', middle=GEAR_SIZE[4], degrees=15)
+    print(rotatedGear)
     dxoff = int(GEAR_SIZE[2]) - GEAR_SIZE[4][1]
     dyoff = int(GEAR_SIZE[0]) - GEAR_SIZE[4][0]
     cxoff = (RADIUS * math.cos(math.radians(i)))
     cyoff = (RADIUS * math.sin(math.radians(i)))
     resampled = getResampledArr(union[0])
-    union = getUnion(resampled, GEAR_POINTS, (cxoff, cyoff))
+    union = getUnion(resampled, rotatedGear, (cxoff, cyoff))
     print(len(union[0]))
 
 exportSvgPoints(union, 'output.svg')
