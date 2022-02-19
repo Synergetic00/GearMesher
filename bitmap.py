@@ -7,7 +7,8 @@ gearOverlap = 1.0
 computationSteps = 100
 
 def loadGearImage():
-    image = Image.open('mrbeast.png').convert('L')
+    filename = filedialog.askopenfilename()
+    image = Image.open(filename).convert('L')
     image.load()
     data = np.asarray(image)
     return data

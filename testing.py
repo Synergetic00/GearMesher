@@ -2,9 +2,8 @@ import math
 from turtle import pen
 import svg.path
 import svgutils
-from clipper import Point
 from xml.dom import minidom
-from wrapper import Clipper, PolyFillType, PolyType, ClipType, SVGBuilder
+from clipper import Point, Clipper, PolyFillType, PolyType, ClipType, SVGBuilder
 
 def getSvgDimesions(points):
     xpoints, ypoints = zip(*points)
@@ -27,7 +26,7 @@ def getRotatedArr(points, middle, degrees):
     return output
 
 def getSampledPoints(path, samples=1000, offset=(0,0), middle=(0,0), degrees=0):
-    svgdoc = minidom.parse('temp.svg')
+    svgdoc = minidom.parse(path)
     svgpathdarr = [element.getAttribute('d') for element in svgdoc.getElementsByTagName('path')]
     svgdoc.unlink()
     svgpathd = str(svgpathdarr[-1])
@@ -75,7 +74,7 @@ def getResampledArr(original, samples=1500):
         counter += ratio
     return resampled
 
-GEAR_POINTS, GEAR_SIZE = getSampledPoints(path='gear.svg', degrees=0)
+GEAR_POINTS, GEAR_SIZE = getSampledPoints(path='resources/gear.svg', degrees=0)
 union = getUnion(GEAR_POINTS, GEAR_POINTS)
 
 RADIUS = 300
@@ -83,7 +82,7 @@ NUM = 10
 
 for i in range(NUM):
     degrees = (90/NUM) * i
-    rotatedGear, rotatedSize = getSampledPoints(path='gear.svg', middle=GEAR_SIZE[4], degrees=degrees)
+    rotatedGear, rotatedSize = getSampledPoints(path='resources/gear.svg', middle=GEAR_SIZE[4], degrees=degrees)
     dxoff = int(GEAR_SIZE[2]) - GEAR_SIZE[4][1]
     dyoff = int(GEAR_SIZE[0]) - GEAR_SIZE[4][0]
     cxoff = (RADIUS * math.cos(math.radians(degrees)))
@@ -91,4 +90,4 @@ for i in range(NUM):
     resampled = getResampledArr(union[0], samples=1500)
     union = getUnion(resampled, rotatedGear, (cxoff, cyoff))
 
-exportSvgPoints(union, 'output.svg')
+exportSvgPoints(union, 'resources/output.svg')

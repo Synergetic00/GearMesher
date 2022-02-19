@@ -1,16 +1,15 @@
 import math
 import svgutils
-from clipper import Point
 from xml.dom import minidom
 from svg.path import parse_path
-from wrapper import Clipper, PolyFillType, PolyType, ClipType, SVGBuilder
+from clipper import Point, Clipper, PolyFillType, PolyType, ClipType, SVGBuilder
 
 def rotateSvgFile(pathSVG, degrees, middle):
     svg = svgutils.transform.fromfile(pathSVG)
     originalSVG = svgutils.compose.SVG(pathSVG)
     originalSVG = originalSVG.rotate(degrees, x=middle[0], y=middle[1])
     figure = svgutils.compose.Figure(svg.height, svg.width, originalSVG)
-    figure.save('temp.svg')
+    figure.save('resources/temp.svg')
 
 def convertToPointArray(tupleArray, xoff=0, yoff=0):
     output = []
@@ -42,10 +41,10 @@ def getSampledSvgPoints(pathSVG, samples=2000):
 
 def subFromSVG(radii, angle):
     subj, clip = [], []
-    cpoints, _ = getSampledSvgPoints('gear.svg')
-    rotateSvgFile('gear.svg', angle, cpoints[4])
-    _, clipSVG = getSampledSvgPoints('gear.svg')
-    _, subjSVG = getSampledSvgPoints('output.svg')
+    cpoints, _ = getSampledSvgPoints('resources/gear.svg')
+    rotateSvgFile('resources/gear.svg', angle, cpoints[4])
+    _, clipSVG = getSampledSvgPoints('resources/gear.svg')
+    _, subjSVG = getSampledSvgPoints('resources/output.svg')
     subjArr = convertToPointArray(subjSVG, 0, 0)
     dxoff = -int(cpoints[2]) - cpoints[4][1]
     dyoff = -int(cpoints[0]) - cpoints[4][0]
@@ -67,7 +66,7 @@ def subFromSVG(radii, angle):
     svgBuilder.GlobalStyle.fillType = pft
     svgBuilder.GlobalStyle.penWidth = 0
     svgBuilder.AddPolygons(solution, 0x60138013, 0xFF003300)
-    svgBuilder.SaveToFile('./output.svg', invScale, 0)
+    svgBuilder.SaveToFile('./resources/output.svg', invScale, 0)
 
 def combine(clipSVG):
     subj, clip, clip2 = [], [], []
@@ -93,19 +92,19 @@ def combine(clipSVG):
     svgBuilder.GlobalStyle.fillType = pft
     svgBuilder.GlobalStyle.penWidth = 0
     svgBuilder.AddPolygons(solution, 0x60138013, 0xFF003300)
-    svgBuilder.SaveToFile('./output.svg', invScale, 0)
+    svgBuilder.SaveToFile('./resources/output.svg', invScale, 0)
 
 def performSetup(pathSVG, radii):
     svg = svgutils.transform.fromfile(pathSVG)
     originalSVG = svgutils.compose.SVG(pathSVG)
-    size, _ = getSampledSvgPoints('circle.svg')
+    size, _ = getSampledSvgPoints('resources/circle.svg')
     scalew = radii / size[3]
     scaleh = radii / size[1]
     originalSVG = originalSVG.scale(x=scalew, y=scaleh)
     figure = svgutils.compose.Figure(svg.height, svg.width, originalSVG)
-    figure.save('output.svg')
+    figure.save('resources/output.svg')
 
-_, clipSVG = getSampledSvgPoints('gear.svg')
+_, clipSVG = getSampledSvgPoints('resources/gear.svg')
 combine(clipSVG)
 
 # RADIUS = 224
