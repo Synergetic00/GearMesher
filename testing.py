@@ -15,21 +15,27 @@ def getSvgDimesions(points):
     middle = ((right-left)/2.0, (lower-upper)/2.0)
     return (upper, lower, left, right, middle)
 
-def getSampledPoints(path, samples=1000, offset=(0,0), middle=(0,0), degrees=0):
-    svgdims = svgutils.transform.fromfile(path)
-    svgfile = svgutils.compose.SVG(path)
-    svgfile = svgfile.rotate(degrees, x=middle[0], y=middle[1])
-    figure = svgutils.compose.Figure(svgdims.width, svgdims.height, svgfile)
-    figure.save('temp.svg')
+def getRotatedArr(points, middle, degrees):
+    output = []
+    p, q = middle
+    theta = math.radians(degrees)
+    for point in points:
+        x, y = point.x , point.y
+        xp = (x - p) * math.cos(theta) - (y - q) * math.sin(theta) + p
+        yp = (x - p) * math.sin(theta) + (y - q) * math.cos(theta) + q
+        output.append(Point(x=xp, y=yp))
+    return output
 
+def getSampledPoints(path, samples=1000, offset=(0,0), middle=(0,0), degrees=0):
     svgdoc = minidom.parse('temp.svg')
     svgpathdarr = [element.getAttribute('d') for element in svgdoc.getElementsByTagName('path')]
     svgdoc.unlink()
     svgpathd = str(svgpathdarr[-1])
     bezierpath = svg.path.parse_path(svgpathd)
     points = [Point(x=p.real+offset[0], y=p.imag+offset[1]) for p in (bezierpath.point(i/samples) for i in range(samples+1))]
+    rotatedPoints = getRotatedArr(points, middle, degrees)
     size = getSvgDimesions(points)
-    return points, size
+    return rotatedPoints, size
 
 def exportSvgPoints(points, path):
     svgBuilder = SVGBuilder()
@@ -70,20 +76,19 @@ def getResampledArr(original, samples=1500):
     return resampled
 
 GEAR_POINTS, GEAR_SIZE = getSampledPoints(path='gear.svg', degrees=0)
-
-RADIUS = 300
-
 union = getUnion(GEAR_POINTS, GEAR_POINTS)
 
-for i in range(0, 91, 90):
-    rotatedGear, rotatedSize = getSampledPoints(path='gear.svg', middle=GEAR_SIZE[4], degrees=15)
-    print(rotatedGear)
+RADIUS = 300
+NUM = 10
+
+for i in range(NUM):
+    degrees = (90/NUM) * i
+    rotatedGear, rotatedSize = getSampledPoints(path='gear.svg', middle=GEAR_SIZE[4], degrees=degrees)
     dxoff = int(GEAR_SIZE[2]) - GEAR_SIZE[4][1]
     dyoff = int(GEAR_SIZE[0]) - GEAR_SIZE[4][0]
-    cxoff = (RADIUS * math.cos(math.radians(i)))
-    cyoff = (RADIUS * math.sin(math.radians(i)))
-    resampled = getResampledArr(union[0])
+    cxoff = (RADIUS * math.cos(math.radians(degrees)))
+    cyoff = (RADIUS * math.sin(math.radians(degrees)))
+    resampled = getResampledArr(union[0], samples=1500)
     union = getUnion(resampled, rotatedGear, (cxoff, cyoff))
-    print(len(union[0]))
 
 exportSvgPoints(union, 'output.svg')
