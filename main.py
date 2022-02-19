@@ -69,9 +69,8 @@ def subFromSVG(radii, angle):
     svgBuilder.AddPolygons(solution, 0x60138013, 0xFF003300)
     svgBuilder.SaveToFile('./output.svg', invScale, 0)
 
-def combine():
+def combine(clipSVG):
     subj, clip, clip2 = [], [], []
-    cpoints, clipSVG = getSampledSvgPoints('gear.svg')
     clipArr1 = convertToPointArray(clipSVG, 0, 0)
     clipArr2 = convertToPointArray(clipSVG, 0, 100)
     clipArr3 = convertToPointArray(clipSVG, 0, 200)
@@ -88,6 +87,8 @@ def combine():
     c.AddPolygons(clip, PolyType.Clip)
     c.AddPolygons(clip2, PolyType.Subject)
     c.Execute(ClipType.Union, solution, pft, pft)
+    
+    print((solution))
     svgBuilder = SVGBuilder()
     svgBuilder.GlobalStyle.fillType = pft
     svgBuilder.GlobalStyle.penWidth = 0
@@ -104,7 +105,8 @@ def performSetup(pathSVG, radii):
     figure = svgutils.compose.Figure(svg.height, svg.width, originalSVG)
     figure.save('output.svg')
 
-combine()
+_, clipSVG = getSampledSvgPoints('gear.svg')
+combine(clipSVG)
 
 # RADIUS = 224
 # performSetup('circle.svg', RADIUS)
