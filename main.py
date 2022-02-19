@@ -42,8 +42,9 @@ def getSampledSvgPoints(pathSVG, samples=2000):
 
 def subFromSVG(radii, angle):
     subj, clip = [], []
-    cpoints, clipSVG = getSampledSvgPoints('gear.svg')
-    rotateSvgFile('gear.svg', 0, cpoints[4])
+    cpoints, _ = getSampledSvgPoints('gear.svg')
+    rotateSvgFile('gear.svg', angle, cpoints[4])
+    _, clipSVG = getSampledSvgPoints('gear.svg')
     _, subjSVG = getSampledSvgPoints('output.svg')
     subjArr = convertToPointArray(subjSVG, 0, 0)
     dxoff = -int(cpoints[2]) - cpoints[4][1]
@@ -66,19 +67,21 @@ def subFromSVG(radii, angle):
     svgBuilder.GlobalStyle.fillType = pft
     svgBuilder.GlobalStyle.penWidth = 0
     svgBuilder.AddPolygons(solution, 0x60138013, 0xFF003300)
-    svgBuilder.SaveToFile('./output.svg', invScale, 100)
+    svgBuilder.SaveToFile('./output.svg', invScale, 0)
 
 def performSetup(pathSVG, radii):
     svg = svgutils.transform.fromfile(pathSVG)
     originalSVG = svgutils.compose.SVG(pathSVG)
-    size, _ = getSampledSvgPoints('frankenstein.svg')
+    size, _ = getSampledSvgPoints('circle.svg')
     scalew = radii / size[3]
     scaleh = radii / size[1]
     originalSVG = originalSVG.scale(x=scalew, y=scaleh)
     figure = svgutils.compose.Figure(svg.height, svg.width, originalSVG)
     figure.save('output.svg')
 
-RADIUS = 1000
-performSetup('frankenstein.svg', RADIUS)
-subFromSVG(RADIUS, 0)
-subFromSVG(RADIUS, 90)
+RADIUS = 224
+performSetup('circle.svg', RADIUS)
+TEETH = 16
+for i in range(0, TEETH+1, 1):
+    rot = (90.0/TEETH) * i
+    subFromSVG(RADIUS, rot)

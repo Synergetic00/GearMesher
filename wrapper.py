@@ -84,7 +84,7 @@ class SVGBuilder(object):
         pi.polygons = polys
         self.PolyInfoList.append(pi)
 
-    def SaveToFile(self, filename, invScale = 1.0, margin = 10):
+    def SaveToFile(self, filename, invScale = 1.0, margin = 0):
         if len(self.PolyInfoList) == 0: return False
         if invScale == 0: invScale = 1.0
         if margin < 0: margin = 0
