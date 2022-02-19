@@ -26,12 +26,17 @@ def getSampledPoints(path, samples=1000, offset=(0,0), degrees=0):
     return points, size
 
 def exportSvgPoints(points, path):
-    builder = SVGBuilder()
-    builder.GlobalStyle.penWidth = 0
-    fillColour = 0x60138013
-    strokeColour = 0xFF003300
-    builder.AddPolygon(points, fillColour, strokeColour)
-    builder.SaveToFile('./output.svg')
+    svgBuilder = SVGBuilder()
+    svgBuilder.GlobalStyle.penWidth = 0
+    svgBuilder.AddPolygons(points, 0x60138013, 0xFF003300)
+    svgBuilder.SaveToFile('./' + path, 1, 0)
+
+def offsetPoints(points, offset=(0,0)):
+    output = []
+    for point in points:
+        ox, oy = point.x + offset[0], point.y + offset[1]
+        output.append(Point(x=ox, y=oy))
+    return output
 
 def getUnion(objectA, objectB, offset=(0,0)):
     objectB = offsetPoints(objectB, offset)
@@ -45,17 +50,32 @@ def getUnion(objectA, objectB, offset=(0,0)):
     c.Execute(ClipType.Union, solution)
     return solution
 
-def offsetPoints(points, offset=(0,0)):
-    output = []
-    for point in points:
-        ox, oy = point.x + offset[0], point.y + offset[1]
-        output.append(Point(x=ox, y=oy))
-    return output
-
-# def combinePoints():
+def getResampledArr(original, samples=1500):
+    length = len(original)
+    ratio = samples / length
+    if ratio >= 1.0: return original
+    resampled = []
+    counter = 0.0
+    for i in range(length):
+        if counter > 1.0:
+            resampled.append(original[i])
+            counter = 0.0
+        counter += ratio
+    return resampled
 
 GEAR_POINTS, GEAR_SIZE = getSampledPoints(path='gear.svg')
 
-union = getUnion(GEAR_POINTS, GEAR_POINTS, (0, 0))
+RADIUS = 300
 
-exportSvgPoints(union, '')
+union = getUnion(GEAR_POINTS, GEAR_POINTS)
+
+for i in range(0, 91, 6):
+    dxoff = int(GEAR_SIZE[2]) - GEAR_SIZE[4][1]
+    dyoff = int(GEAR_SIZE[0]) - GEAR_SIZE[4][0]
+    cxoff = (RADIUS * math.cos(math.radians(i)))
+    cyoff = (RADIUS * math.sin(math.radians(i)))
+    resampled = getResampledArr(union[0])
+    union = getUnion(resampled, GEAR_POINTS, (cxoff, cyoff))
+    print(len(union[0]))
+
+exportSvgPoints(union, 'output.svg')
